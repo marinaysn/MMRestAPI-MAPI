@@ -9,10 +9,7 @@ exports.createPost = ( req, res, next) => {
     const title = req.body.title;
     const content = req.body.content;
     const url = req.body.url;
-    
-    // console.log(title);
-    // console.log(content);
-    console.log(req.body);
+
 
     res.status(201).json({
         message: 'Post Created!',
