@@ -21,17 +21,20 @@ exports.createPost = ( req, res, next) => {
 
     if(!errors.isEmpty()){
         console.log(errors)
-
-        return res.status(422).json({
-            message: errors.array()[0].msg,
-            errors: errors.array()
-        })
+        const errMsg = new Error(errors.array()[0].msg);
+        errMsg.httpStatusCode = 422;
+        
+        throw errMsg;
+        // return res.status(422).json({
+        //     message: errors.array()[0].msg,
+        //     errors: errors.array()
+        // })
     }
 
     const post = new Post({
         title: title, 
         content: content, 
-        imageUrl: 'imageUrl',
+        imageUrl: '1.jpeg',
         creator: { name: 'Anna'}
     });
 
@@ -41,7 +44,14 @@ exports.createPost = ( req, res, next) => {
             message: 'Post Created!',
             post: result
         })
-    }).catch(err => console.log(err))
+    }).catch(err => {
+        let str = err.errmsg.substring(err.errmsg.indexOf(' '), err.errmsg.indexOf(':'))
+            const error = new Error(str)
+            if (!err.statusCode){
+               error.statusCode = 500; 
+            }
+            next(error);
+    })
 
     
 };

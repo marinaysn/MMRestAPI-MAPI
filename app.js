@@ -21,6 +21,14 @@ app.use((req, res, next) =>{
 
 app.use('/feed', feedRoutes);
 
+app.use((error, req, res, next) =>{
+    console.log(error);
+    const status = error.statusCode || 500
+    const msg = error.message;
+    res.status(status).json({message: msg});
+})
+
+//database connection: blog
 mongoose
 .connect(connectionString, {
     useNewUrlParser: true,

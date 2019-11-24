@@ -9,9 +9,9 @@ router.get('/posts', feedController.getPosts);
 //POST /feed/post
 router.post('/post',
 [
-    body('title', 'Please enter valid title')
+    body('title', 'Please enter valid title!')
     .trim()
-    .isLength({min: 5})
+    .isLength({min: 7})
     .isString(),
 
     body('content', 'Please enter valid content')
