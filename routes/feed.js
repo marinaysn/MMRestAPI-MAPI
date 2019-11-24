@@ -11,7 +11,7 @@ router.post('/post',
 [
     body('title', 'Please enter valid title!')
     .trim()
-    .isLength({min: 7})
+    .isLength({min: 5})
     .isString(),
 
     body('content', 'Please enter valid content')

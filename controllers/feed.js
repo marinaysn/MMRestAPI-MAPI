@@ -22,30 +22,34 @@ exports.getPosts = ((req, res, next)=>{
 
 exports.createPost = ( req, res, next) => {
     //Create post in db
+
+    //first check for validation errors
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        // console.log(errors)
+         console.log(errors.array()[0].msg)
+         const errMsg = new Error(errors.array()[0].msg);
+         errMsg.httpStatusCode = 422;
+         errMsg.message = errors.array()[0].msg;
+         throw errMsg;
+     }
+
+     //get user's data
     const title = req.body.title;
     const content = req.body.content;
-    const imageUrl = req.body.imageUrl;
-    const date = new Date();
 
-    const errors = validationResult(req);
-
-    if(!errors.isEmpty()){
-       // console.log(errors)
-        console.log(errors.array()[0].msg)
-        const errMsg = new Error(errors.array()[0].msg);
-        errMsg.httpStatusCode = 422;
-        errMsg.message = errors.array()[0].msg;
-        throw errMsg;
-        // return res.status(422).json({
-        //     message: errors.array()[0].msg,
-        //     errors: errors.array()
-        // })
+    if (!req.file){
+        const err = new Error('Cannot file image file');
+        err.httpStatusCode = 422;
+        throw err;
     }
+    const imageUrl = req.file.path.replace("\\" ,"/");
 
+ 
     const post = new Post({
         title: title, 
         content: content, 
-        imageUrl: '1.jpg',
+        imageUrl: imageUrl,
         creator: { name: 'Anna'}
     });
 
