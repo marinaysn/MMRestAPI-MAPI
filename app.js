@@ -2,13 +2,43 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const connectionString = require('./util/database');
-
+const path = require('path');
 const app = express();
+const multer = require('multer');
 
 const feedRoutes = require('./routes/feed')
 
 //app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
+//configure storage for Files to use in a multer object
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'images')
+    },
+    filename: (req, file, cb) => {
+        //cb(null, uuidv4())
+      cb(null, file.originalname)
+    }
+  })
+
+//set Filter for Files to use in a multer object
+const fileFilter = (req, file, cb) => {
+    if (
+      file.mimetype === 'image/jpeg' ||
+      file.mimetype === 'image/png' ||
+      file.mimetype === 'image/jpg') {
+      cb(null, true);
+    }
+    else {
+      cb(null, false);
+    }
+  }
+
+  app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')); // image is coming from 
+
 
 app.use((req, res, next) =>{
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,6 +49,14 @@ app.use((req, res, next) =>{
 
 app.use('/feed', feedRoutes);
 
+app.use((error, req, res, next) =>{
+    console.log(error.message);
+    const status = error.httpStatusCode || 500
+    const msg = error.message;
+    res.status(status).json({message: msg});
+})
+
+//database connection: blog
 mongoose
 .connect(connectionString, {
     useNewUrlParser: true,

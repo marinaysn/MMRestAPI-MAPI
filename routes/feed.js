@@ -9,7 +9,7 @@ router.get('/posts', feedController.getPosts);
 //POST /feed/post
 router.post('/post',
 [
-    body('title', 'Please enter valid title')
+    body('title', 'Please enter valid title!')
     .trim()
     .isLength({min: 5})
     .isString(),
@@ -20,6 +20,8 @@ router.post('/post',
     .isString()
 
 ], 
-feedController.createPost)
+feedController.createPost);
+
+router.get('/post/:postId', feedController.getSinglePost);
 
 module.exports = router;
