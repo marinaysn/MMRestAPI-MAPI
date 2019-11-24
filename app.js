@@ -1,5 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const connectionString = require('./util/database');
 
 const app = express();
 
@@ -17,4 +19,13 @@ app.use((req, res, next) =>{
 
 app.use('/feed', feedRoutes);
 
-app.listen(8080);
+mongoose
+.connect(connectionString, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(result =>{
+    console.log('Connected!')
+    app.listen(8080);
+})
+.catch(err =>console.log(err))
