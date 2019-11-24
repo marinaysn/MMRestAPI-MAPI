@@ -22,12 +22,6 @@ const postSchema = new Schema({
     creator: {
         type: Object,
         required: true 
-    },
-
-    CreatedAt:{
-        type: Date,
-        // `Date.now()` returns the current unix timestamp as a number
-        default: Date.now
     }
 },
 {timestamps: true}
