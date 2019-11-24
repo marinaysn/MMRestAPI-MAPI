@@ -20,6 +20,8 @@ router.post('/post',
     .isString()
 
 ], 
-feedController.createPost)
+feedController.createPost);
+
+router.get('/post/:postId', feedController.getSinglePost);
 
 module.exports = router;
