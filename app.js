@@ -6,7 +6,8 @@ const path = require('path');
 const app = express();
 const multer = require('multer');
 
-const feedRoutes = require('./routes/feed')
+const feedRoutes = require('./routes/feed');
+const authRoutes = require('./routes/auth');
 
 //app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -48,12 +49,14 @@ app.use((req, res, next) =>{
 });
 
 app.use('/feed', feedRoutes);
+app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) =>{
     console.log(error.message);
     const status = error.httpStatusCode || 500
     const msg = error.message;
-    res.status(status).json({message: msg});
+    const data = error.data
+    res.status(status).json({message: msg, data: data});
 })
 
 //database connection: blog
