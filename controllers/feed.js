@@ -3,18 +3,22 @@ const Post = require('../models/post');
 const fs = require('fs');
 const path = require('path');
 
+const ITEMS_PER_PAGE = 5
+
 exports.getPosts = ((req, res, next) => {
 
     const currentPage = req.query.page || 1
-    const perPage = 5;
+
+    //ITEMS_PER_PAGE called in Front End
+    const ITEMS_PER_PAGE = 5;
     let totalItems = 0;
 
     Post.find().countDocuments()
         .then(count => {
             totalItems = count;
             return Post.find()
-            .skip((currentPage -1) * perPage)
-            .limit(perPage);
+            .skip((currentPage - 1) * ITEMS_PER_PAGE)
+            .limit(ITEMS_PER_PAGE);
         })
         .then(posts => {
             res.status(200).json({ message: 'Found Posts', posts: posts, totalItems: totalItems });

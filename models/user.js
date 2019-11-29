@@ -9,10 +9,6 @@ const userSchema = new Schema({
         required: true
     },
 
-    age: {
-        type: Number
-    },
-
     email: {
         type: String,
         required: true 
@@ -25,7 +21,7 @@ const userSchema = new Schema({
 
     status: {
         type: String,
-        required: true 
+        default: 'New'
     },
     posts: [{
         type: Schema.Types.ObjectId,

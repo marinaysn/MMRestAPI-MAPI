@@ -55,7 +55,8 @@ app.use((error, req, res, next) =>{
     console.log(error.message);
     const status = error.httpStatusCode || 500
     const msg = error.message;
-    res.status(status).json({message: msg});
+    const data = error.data
+    res.status(status).json({message: msg, data: data});
 })
 
 //database connection: blog
