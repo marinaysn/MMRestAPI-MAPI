@@ -258,9 +258,12 @@ exports.updateStatus = (req, res, next) => {
 
         User.findById(req.userId)
         .then(user => {
-
-           // console.log(user)
             
+            if(!user){
+                const error = new Error('Cannot find user');
+                error.statusCode = 401;
+                throw error;
+            }
             user.status = newStatus;
             return user.save();
 

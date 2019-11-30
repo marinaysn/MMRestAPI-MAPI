@@ -4,6 +4,7 @@ const router = express.Router();
 const { check, body } = require('express-validator');
 
 const isAuth = require('../middleware/isAuth')
+
 //GET /feed/posts
 router.get('/posts', isAuth, feedController.getPosts);
 
