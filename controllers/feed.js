@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator');
 const Post = require('../models/post');
 const fs = require('fs');
 const path = require('path');
+const User = require('../models/user');
 
 const ITEMS_PER_PAGE = 5
 
@@ -17,8 +18,8 @@ exports.getPosts = ((req, res, next) => {
         .then(count => {
             totalItems = count;
             return Post.find()
-            .skip((currentPage - 1) * ITEMS_PER_PAGE)
-            .limit(ITEMS_PER_PAGE);
+                .skip((currentPage - 1) * ITEMS_PER_PAGE)
+                .limit(ITEMS_PER_PAGE);
         })
         .then(posts => {
             res.status(200).json({ message: 'Found Posts', posts: posts, totalItems: totalItems });
@@ -51,6 +52,7 @@ exports.createPost = (req, res, next) => {
     //get user's data
     const title = req.body.title;
     const content = req.body.content;
+    let creator;
 
     if (!req.file) {
         const err = new Error('Cannot file image file');
@@ -60,27 +62,40 @@ exports.createPost = (req, res, next) => {
     const imageUrl = req.file.path.replace("\\", "/");
 
 
+
     const post = new Post({
         title: title,
         content: content,
         imageUrl: imageUrl,
-        creator: { name: 'Anna' }
+        creator: req.userId
     });
 
     post.save().then(result => {
-        // console.log(result);
-        res.status(201).json({
-            message: 'Post Created!',
-            post: result
-        })
-    }).catch(err => {
-        let str = err.errmsg.substring(err.errmsg.indexOf(' '), err.errmsg.indexOf(':'))
-        const error = new Error(str)
-        if (!err.httpStatusCode) {
-            error.httpStatusCode = 500;
-        }
-        next(error);
+
+        return User.findById(req.userId)
     })
+        .then(user => {
+
+            creator = user;
+            user.posts.push(post);
+           return user.save();   
+        }).then( result =>{
+
+            res.status(201).json({
+                message: 'Post Created!',
+                post: post,
+                creator: { _id: creator._id, name: creator.name}
+            })
+        })
+        .catch(err => {
+            console.log(error)
+            let str = err.errmsg.substring(err.errmsg.indexOf(' '), err.errmsg.indexOf(':'))
+            const error = new Error(str)
+            if (!err.httpStatusCode) {
+                error.httpStatusCode = 500;
+            }
+            next(error);
+        })
 };
 
 exports.getSinglePost = (req, res, next) => {
@@ -118,8 +133,6 @@ exports.updatePost = (req, res, next) => {
         errMsg.message = errors.array()[0].msg;
         throw errMsg;
     }
-
-
     const postId = req.params.postId;
     const title = req.body.title;
     const content = req.body.content;
@@ -142,6 +155,16 @@ exports.updatePost = (req, res, next) => {
                 err.httpStatusCode = 404;
                 throw err;
             }
+            console.log('***************');
+            console.log(post.creator.toString());
+            console.log(req.userId);
+           // console.log(req)
+            //check if user is authorized to update post
+            if(post.creator.toString() !== req.userId){
+                const error = new Error('Not Authorized!');
+                error.statusCode = 403;
+                throw error;
+            }
 
             if (imageUrl !== post.imageUrl) {
                 clearImage(post.imageUrl)
@@ -155,8 +178,8 @@ exports.updatePost = (req, res, next) => {
             res.status(200).json({ message: 'Post updated', post: result });
         })
         .catch(err => {
-            let str = err.errmsg.substring(err.errmsg.indexOf(' '), err.errmsg.indexOf(':'))
-            const error = new Error(str)
+            // let str = err.errmsg.substring(err.errmsg.indexOf(' '), err.errmsg.indexOf(':'))
+            const error = new Error('Cannot update.')
             if (!err.httpStatusCode) {
                 error.httpStatusCode = 500;
             }
@@ -177,16 +200,35 @@ exports.deletePost = (req, res, next) => {
                 throw err;
             }
 
+            console.log('============');
+            console.log(post.creator.toString());
+            console.log(req.userId);
+
+           // console.log(req)
+             //check if user is authorized to delete post
+             if(post.creator.toString() !== req.userId){
+                const error = new Error('Not Authorized!');
+                error.statusCode = 403;
+                throw error;
+            }
+
             clearImage(post.imageUrl)
             return Post.findByIdAndRemove(postId);
         })
         .then(result => {
+
+            return User.findById(req.userId)
+            // console.log(result);
+        })
+        .then(user => {
+
             // console.log(result);
             res.status(200).json({ message: 'Deleted Post' });
         })
         .catch(err => {
-            let str = err.errmsg.substring(err.errmsg.indexOf(' '), err.errmsg.indexOf(':'))
-            const error = new Error(str)
+            // let str = err.errmsg.substring(err.errmsg.indexOf(' '), err.errmsg.indexOf(':'))
+
+            const error = new Error('Cannot delete the post')
             if (!err.httpStatusCode) {
                 error.httpStatusCode = 500;
             }
