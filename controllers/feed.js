@@ -76,7 +76,17 @@ exports.createPost = (req, res, next) => {
     })
         .then(user => {
 
+
+                console.log('-------------------')
+                console.log(user.posts.length)
+            let postsItems = ((user.posts.length+1) === 1) ? ' post' : ' posts'
+            let NumOfPostsStatus = 'Author of ' + (user.posts.length+1)  + postsItems
+
+             console.log(postsItems)
+            console.log(NumOfPostsStatus)
+
             creator = user;
+            user.status = NumOfPostsStatus
             user.posts.push(post);
            return user.save();   
         }).then( result =>{
@@ -88,9 +98,9 @@ exports.createPost = (req, res, next) => {
             })
         })
         .catch(err => {
-            console.log(error)
-            let str = err.errmsg.substring(err.errmsg.indexOf(' '), err.errmsg.indexOf(':'))
-            const error = new Error(str)
+            
+            
+            const error = new Error('Error')
             if (!err.httpStatusCode) {
                 error.httpStatusCode = 500;
             }
@@ -200,11 +210,6 @@ exports.deletePost = (req, res, next) => {
                 throw err;
             }
 
-            console.log('============');
-            console.log(post.creator.toString());
-            console.log(req.userId);
-
-           // console.log(req)
              //check if user is authorized to delete post
              if(post.creator.toString() !== req.userId){
                 const error = new Error('Not Authorized!');
@@ -222,7 +227,12 @@ exports.deletePost = (req, res, next) => {
         })
         .then(user => {
 
-            // console.log(result);
+            user.posts.pull(postId);
+            return user.save()
+        })
+        .then(result => {
+
+        
             res.status(200).json({ message: 'Deleted Post' });
         })
         .catch(err => {
@@ -239,4 +249,52 @@ exports.deletePost = (req, res, next) => {
 const clearImage = filePath => {
     filePath = path.join(__dirname, '..', filePath);
     fs.unlink(filePath, err => console.log(err));
+}
+
+
+exports.updateStatus = (req, res, next) => {
+
+    const newStatus = req.body.status;
+
+        User.findById(req.userId)
+        .then(user => {
+
+           // console.log(user)
+            
+            user.status = newStatus;
+            return user.save();
+
+        })
+        .then(result => {
+
+            res.status(200).json({ message: 'User status is updated' });
+        })
+        .catch(err => {
+            // let str = err.errmsg.substring(err.errmsg.indexOf(' '), err.errmsg.indexOf(':'))
+            const error = new Error('Cannot update.')
+            if (!err.httpStatusCode) {
+                error.httpStatusCode = 500;
+            }
+            next(error);
+        })
+};
+
+exports.getStatus = (req, res, next) => {
+    User.findById(req.userId)
+    .then(user =>{
+        console.log(user)
+        if(!user){
+            const error = new Error('Cannot find user');
+            error.statusCode = 401;
+            throw error;
+        }
+        return res.status(200).json({ status: user.status})
+
+    }).catch(err =>{
+        const error = new Error('Cannot update.')
+        if (!err.httpStatusCode) {
+            error.httpStatusCode = 500;
+        }
+        next(error); 
+    })
 }
