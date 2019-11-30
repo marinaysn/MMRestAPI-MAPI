@@ -63,7 +63,8 @@ app.use((error, req, res, next) =>{
 mongoose
 .connect(connectionString, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useFindAndModify: false
 })
 .then(result =>{
     console.log('Connected!')

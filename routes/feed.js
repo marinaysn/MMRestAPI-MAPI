@@ -4,11 +4,12 @@ const router = express.Router();
 const { check, body } = require('express-validator');
 
 const isAuth = require('../middleware/isAuth')
+
 //GET /feed/posts
 router.get('/posts', isAuth, feedController.getPosts);
 
 //POST /feed/post
-router.post('/post',
+router.post('/post', isAuth,
 [
     body('title', 'Please enter valid title!')
     .trim()
@@ -23,10 +24,10 @@ router.post('/post',
 ], 
 feedController.createPost);
 
-router.get('/post/:postId', feedController.getSinglePost);
+router.get('/post/:postId', isAuth, feedController.getSinglePost);
 
 
-router.put('/post/:postId',
+router.put('/post/:postId', isAuth,
 [
     body('title', 'Please enter valid title!')
     .trim()
@@ -42,5 +43,12 @@ router.put('/post/:postId',
 feedController.updatePost
 )
 
-router.delete('/post/:postId', feedController.deletePost);
+router.delete('/post/:postId',  isAuth, feedController.deletePost);
+
+
+router.post('/status', isAuth, feedController.updateStatus);
+
+router.get('/status', isAuth, feedController.getStatus);
 module.exports = router;
+
+
