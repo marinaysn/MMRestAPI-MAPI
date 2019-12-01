@@ -6,43 +6,38 @@ const User = require('../models/user');
 
 const ITEMS_PER_PAGE = 5
 
-exports.getPosts = ((req, res, next) => {
+exports.getPosts = async (req, res, next) => {
 
     const currentPage = req.query.page || 1
 
     //ITEMS_PER_PAGE called in Front End
     const ITEMS_PER_PAGE = 5;
-    let totalItems = 0;
 
-    Post.find().countDocuments()
-        .then(count => {
-            totalItems = count;
-            return Post.find()
-                .skip((currentPage - 1) * ITEMS_PER_PAGE)
-                .limit(ITEMS_PER_PAGE);
-        })
-        .then(posts => {
-            res.status(200).json({ message: 'Found Posts', posts: posts, totalItems: totalItems });
-        })
-        .catch(err => {
-            let str = err.errmsg.substring(err.errmsg.indexOf(' '), err.errmsg.indexOf(':'))
-            const error = new Error(str)
-            if (!err.statusCode) {
-                error.statusCode = 500;
-            }
-            next(error);
-        })
+    try {
 
-});
+        const totalItems = await Post.find().countDocuments();
 
-exports.createPost = (req, res, next) => {
+        const posts = await Post.find()
+            .skip((currentPage - 1) * ITEMS_PER_PAGE)
+            .limit(ITEMS_PER_PAGE);
+
+        res.status(200).json({ message: 'Found Posts', posts: posts, totalItems: totalItems });
+    }
+    catch (err) {
+        const error = new Error('Sorry, cannot load posts!')
+        if (!err.statusCode) {
+            error.statusCode = 500;
+        }
+        next(error);
+    }
+};
+
+exports.createPost = async (req, res, next) => {
     //Create post in db
 
     //first check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        // console.log(errors)
-        console.log(errors.array()[0].msg)
         const errMsg = new Error(errors.array()[0].msg);
         errMsg.httpStatusCode = 422;
         errMsg.message = errors.array()[0].msg;
@@ -61,8 +56,6 @@ exports.createPost = (req, res, next) => {
     }
     const imageUrl = req.file.path.replace("\\", "/");
 
-
-
     const post = new Post({
         title: title,
         content: content,
@@ -76,30 +69,24 @@ exports.createPost = (req, res, next) => {
     })
         .then(user => {
 
-
-                console.log('-------------------')
-                console.log(user.posts.length)
-            let postsItems = ((user.posts.length+1) === 1) ? ' post' : ' posts'
-            let NumOfPostsStatus = 'Author of ' + (user.posts.length+1)  + postsItems
-
-             console.log(postsItems)
-            console.log(NumOfPostsStatus)
+            let postsItems = ((user.posts.length + 1) === 1) ? ' post' : ' posts'
+            let NumOfPostsStatus = 'Author of ' + (user.posts.length + 1) + postsItems
 
             creator = user;
             user.status = NumOfPostsStatus
             user.posts.push(post);
-           return user.save();   
-        }).then( result =>{
+            return user.save();
+        }).then(result => {
 
             res.status(201).json({
                 message: 'Post Created!',
                 post: post,
-                creator: { _id: creator._id, name: creator.name}
+                creator: { _id: creator._id, name: creator.name }
             })
         })
         .catch(err => {
-            
-            
+
+
             const error = new Error('Error')
             if (!err.httpStatusCode) {
                 error.httpStatusCode = 500;
@@ -136,8 +123,7 @@ exports.updatePost = (req, res, next) => {
     //first check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        // console.log(errors)
-        console.log(errors.array()[0].msg)
+
         const errMsg = new Error(errors.array()[0].msg);
         errMsg.httpStatusCode = 422;
         errMsg.message = errors.array()[0].msg;
@@ -165,12 +151,9 @@ exports.updatePost = (req, res, next) => {
                 err.httpStatusCode = 404;
                 throw err;
             }
-            console.log('***************');
-            console.log(post.creator.toString());
-            console.log(req.userId);
-           // console.log(req)
+
             //check if user is authorized to update post
-            if(post.creator.toString() !== req.userId){
+            if (post.creator.toString() !== req.userId) {
                 const error = new Error('Not Authorized!');
                 error.statusCode = 403;
                 throw error;
@@ -210,8 +193,8 @@ exports.deletePost = (req, res, next) => {
                 throw err;
             }
 
-             //check if user is authorized to delete post
-             if(post.creator.toString() !== req.userId){
+            //check if user is authorized to delete post
+            if (post.creator.toString() !== req.userId) {
                 const error = new Error('Not Authorized!');
                 error.statusCode = 403;
                 throw error;
@@ -223,7 +206,7 @@ exports.deletePost = (req, res, next) => {
         .then(result => {
 
             return User.findById(req.userId)
-            // console.log(result);
+
         })
         .then(user => {
 
@@ -232,7 +215,7 @@ exports.deletePost = (req, res, next) => {
         })
         .then(result => {
 
-        
+
             res.status(200).json({ message: 'Deleted Post' });
         })
         .catch(err => {
@@ -256,10 +239,10 @@ exports.updateStatus = (req, res, next) => {
 
     const newStatus = req.body.status;
 
-        User.findById(req.userId)
+    User.findById(req.userId)
         .then(user => {
-            
-            if(!user){
+
+            if (!user) {
                 const error = new Error('Cannot find user');
                 error.statusCode = 401;
                 throw error;
@@ -284,20 +267,19 @@ exports.updateStatus = (req, res, next) => {
 
 exports.getStatus = (req, res, next) => {
     User.findById(req.userId)
-    .then(user =>{
-        console.log(user)
-        if(!user){
-            const error = new Error('Cannot find user');
-            error.statusCode = 401;
-            throw error;
-        }
-        return res.status(200).json({ status: user.status})
+        .then(user => {
+            if (!user) {
+                const error = new Error('Cannot find user');
+                error.statusCode = 401;
+                throw error;
+            }
+            return res.status(200).json({ status: user.status })
 
-    }).catch(err =>{
-        const error = new Error('Cannot update.')
-        if (!err.httpStatusCode) {
-            error.httpStatusCode = 500;
-        }
-        next(error); 
-    })
+        }).catch(err => {
+            const error = new Error('Cannot update.')
+            if (!err.httpStatusCode) {
+                error.httpStatusCode = 500;
+            }
+            next(error);
+        })
 }
