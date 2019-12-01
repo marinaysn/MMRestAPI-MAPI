@@ -10,8 +10,7 @@ exports.signup = (req, res, next) => {
     //first check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        // console.log(errors)
-        console.log(errors.array()[0].msg)
+
         const errMsg = new Error(errors.array()[0].msg);
         errMsg.statusCode = 422;
         errMsg.message = errors.array()[0].msg;
@@ -76,7 +75,7 @@ exports.login = (req, res, next) => {
                 userId: loadedUser._id.toString()
             }, 'secret', { expiresIn: '1h' })
 
-            console.log("Token - " + token)
+            //console.log("Token - " + token)
 
             res.status(200).json({ token: token, userId: loadedUser._id.toString() });
         })
