@@ -3,7 +3,7 @@ const Post = require('../models/post');
 const fs = require('fs');
 const path = require('path');
 const User = require('../models/user');
-
+const io = require('../socket');
 const ITEMS_PER_PAGE = 5
 
 exports.getPosts = async (req, res, next) => {
@@ -78,6 +78,11 @@ exports.createPost = async (req, res, next) => {
 
         await user.save();
 
+        // sending notification about the change to ALL clients
+        // to send responce to all clients except the one who send request - use broadcast instead
+        io.getIO().emit('postsListened', {action: 'create', post: {...post._doc, creator: { _id: req.userId, name: user.name}}});
+
+
         res.status(201).json({
             message: 'Post Created!',
             post: post,
@@ -143,16 +148,21 @@ exports.updatePost = async (req, res, next) => {
 
     try {
 
-        const post = await Post.findById(postId)
+        const post = await Post.findById(postId).populate('creator');
 
         if (!post) {
             const err = new Error('Cannot find this post');
             err.httpStatusCode = 404;
             throw err;
         }
-
+ console.log('rrrrrrrrrrr')
+            console.log(post.creator._id.toString() 
+            )
+            console.log(req.userId)
+       
         //check if user is authorized to update post
-        if (post.creator.toString() !== req.userId) {
+        if (post.creator._id.toString() !== req.userId) {
+           
             const error = new Error('Not Authorized!');
             error.statusCode = 403;
             throw error;
@@ -166,13 +176,20 @@ exports.updatePost = async (req, res, next) => {
         post.imageUrl = imageUrl;
 
         const result = await post.save();
+        console.log('11111111111111')
+        //console.log(post)
+        console.log('-----------------')
+       // console.log(result)
+      //  io.getIO.emit('postsListened', {action: 'update', post: result})
+      io.getIO().emit('posts', { action: 'update', post: result });
+      console.log('2222222222222')
         res.status(200).json({ message: 'Post updated', post: result });
     }
     catch (err) {
-
+        console.log('oooooooooooo')
         const error = new Error('Cannot update.')
         if (!err.httpStatusCode) {
-            error.httpStatusCode = 500;
+            error.httpStatusCode = 505;
         }
         next(error);
     }
