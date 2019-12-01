@@ -45,7 +45,6 @@ feedController.updatePost
 
 router.delete('/post/:postId',  isAuth, feedController.deletePost);
 
-
 router.post('/status', isAuth, feedController.updateStatus);
 
 router.get('/status', isAuth, feedController.getStatus);
