@@ -45,10 +45,11 @@ exports.createPost = async (req, res, next) => {
         throw errMsg;
     }
 
-    //get user's data
+    //get user's data from browser
     const title = req.body.title;
     const content = req.body.content;
 
+    //if image doesn't exist, notify user with error
     if (!req.file) {
         const err = new Error('Cannot file image file');
         err.httpStatusCode = 422;
@@ -56,6 +57,7 @@ exports.createPost = async (req, res, next) => {
     }
     const imageUrl = req.file.path.replace("\\", "/");
 
+    //try to create new post
     try {
         const post = new Post({
             title: title,
@@ -82,7 +84,6 @@ exports.createPost = async (req, res, next) => {
             creator: { _id: user._id, name: user.name }
         })
     } catch (err) {
-
         const error = new Error('Error')
         if (!err.httpStatusCode) {
             error.httpStatusCode = 500;
