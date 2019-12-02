@@ -6,8 +6,6 @@ const path = require('path');
 const app = express();
 const multer = require('multer');
 
-const feedRoutes = require('./routes/feed');
-const authRoutes = require('./routes/auth');
 
 //app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -48,11 +46,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/feed', feedRoutes);
-app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {
-
   const status = error.httpStatusCode || 500
   const msg = error.message;
   const data = error.data
@@ -69,9 +64,5 @@ mongoose
   .then(result => {
     console.log('Connected!')
     const server = app.listen(8080);
-    const io = require('./socket').init(server);
-    io.on('connection', socket => {
-      console.log('Client connected')
-    })
   })
   .catch(err => console.log(err))
