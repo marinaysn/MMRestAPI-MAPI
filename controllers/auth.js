@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 
 const jwt = require('jsonwebtoken');
 
-
 exports.signup = (req, res, next) => {
 
     //first check for validation errors
@@ -74,8 +73,6 @@ exports.login = (req, res, next) => {
                 email: loadedUser.email,
                 userId: loadedUser._id.toString()
             }, 'secret', { expiresIn: '1h' })
-
-            //console.log("Token - " + token)
 
             res.status(200).json({ token: token, userId: loadedUser._id.toString() });
         })
