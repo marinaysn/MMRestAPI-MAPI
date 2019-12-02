@@ -10,40 +10,40 @@ router.get('/posts', isAuth, feedController.getPosts);
 
 //POST /feed/post
 router.post('/post', isAuth,
-[
-    body('title', 'Please enter valid title!')
-    .trim()
-    .isLength({min: 5})
-    .isString(),
+    [
+        body('title', 'Please enter valid title!')
+            .trim()
+            .isLength({ min: 5 })
+            .isString(),
 
-    body('content', 'Please enter valid content')
-    .trim()
-    .isLength({min: 5, max: 5500 })
-    .isString()
+        body('content', 'Please enter valid content')
+            .trim()
+            .isLength({ min: 5, max: 5500 })
+            .isString()
 
-], 
-feedController.createPost);
+    ],
+    feedController.createPost);
 
 router.get('/post/:postId', isAuth, feedController.getSinglePost);
 
 
 router.put('/post/:postId', isAuth,
-[
-    body('title', 'Please enter valid title!')
-    .trim()
-    .isLength({min: 5})
-    .isString(),
+    [
+        body('title', 'Please enter valid title!')
+            .trim()
+            .isLength({ min: 5 })
+            .isString(),
 
-    body('content', 'Please enter valid content')
-    .trim()
-    .isLength({min: 5, max: 5500 })
-    .isString()
+        body('content', 'Please enter valid content')
+            .trim()
+            .isLength({ min: 5, max: 5500 })
+            .isString()
 
-], 
-feedController.updatePost
+    ],
+    feedController.updatePost
 )
 
-router.delete('/post/:postId',  isAuth, feedController.deletePost);
+router.delete('/post/:postId', isAuth, feedController.deletePost);
 
 router.post('/status', isAuth, feedController.updateStatus);
 

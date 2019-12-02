@@ -52,7 +52,7 @@ app.use('/feed', feedRoutes);
 app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {
-  console.log(error.message);
+
   const status = error.httpStatusCode || 500
   const msg = error.message;
   const data = error.data
@@ -70,7 +70,7 @@ mongoose
     console.log('Connected!')
     const server = app.listen(8080);
     const io = require('./socket').init(server);
-    io.on('connection', socket =>{
+    io.on('connection', socket => {
       console.log('Client connected')
     })
   })
