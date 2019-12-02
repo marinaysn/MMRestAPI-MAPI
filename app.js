@@ -5,9 +5,11 @@ const connectionString = require('./util/database');
 const path = require('path');
 const app = express();
 const multer = require('multer');
+const grapgQlHTTP = require('express-graphql');
+const grapgQlSchema = require('./graphql/schema')
+const graphQlResolver = require('./graphql/resolvers')
 
 
-//app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
@@ -45,6 +47,11 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   next();
 });
+
+app.use('/graphql', grapgQlHTTP({
+  schema: grapgQlSchema,
+  rootValue: graphQlResolver
+}))
 
 
 app.use((error, req, res, next) => {
