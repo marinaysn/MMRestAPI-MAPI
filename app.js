@@ -5,7 +5,7 @@ const connectionString = require('./util/database');
 const path = require('path');
 const app = express();
 const multer = require('multer');
-const grapgQlHTTP = require('express-graphql');
+const graphqlHTTP = require('express-graphql');
 const grapgQlSchema = require('./graphql/schema')
 const graphQlResolver = require('./graphql/resolvers')
 
@@ -45,13 +45,29 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if(req.method === 'OPTIONS'){
+    return res.sendStatus(200);
+  }
   next();
 });
 
-app.use('/graphql', grapgQlHTTP({
-  schema: grapgQlSchema,
-  rootValue: graphQlResolver
-}))
+
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: grapgQlSchema,
+    rootValue: graphQlResolver,
+    graphiql: true,
+
+    customFormatErrorFn: error => ({
+      message: error.message || 'An error occurred.',
+      code: error.originalError.status || 500,
+      data: error.originalError.data
+    })
+
+  })
+);
 
 
 app.use((error, req, res, next) => {
