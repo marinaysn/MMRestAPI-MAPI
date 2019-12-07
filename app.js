@@ -8,7 +8,7 @@ const multer = require('multer');
 const graphqlHTTP = require('express-graphql');
 const grapgQlSchema = require('./graphql/schema')
 const graphQlResolver = require('./graphql/resolvers')
-
+const auth = require('./middleware/auth')
 
 app.use(bodyParser.json());
 
@@ -52,6 +52,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(auth);
+
 
 app.use(
   '/graphql',
@@ -60,9 +62,9 @@ app.use(
     rootValue: graphQlResolver,
     graphiql: true,
 
-    customFormatErrorFn: error => ({
+    customFormatErrorFn: error => ({   
       message: error.message || 'An error occurred.',
-      code: error.originalError.status || 500,
+      code: error.originalError.code || 500,
       data: error.originalError.data
     })
 
