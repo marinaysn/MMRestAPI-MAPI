@@ -131,8 +131,6 @@ module.exports = {
       page = 1;
     }
 
-    console.log(page)
-
     const totalPosts = await Post.find().countDocuments();
     const posts = await Post.find().sort({ createdUserat: -1 })
       .skip((page - 1) * ITEMS_PER_PAGE)
@@ -144,5 +142,22 @@ module.exports = {
         return { ...p._doc, _id: p._id.toString(), createdAt: p.createdAt.toISOString(), updatedAt: p.updatedAt.toISOString() }
       }), totalPosts: totalPosts
     }
+  },
+
+  singlePost: async function({id}, req) {
+
+    if (!req.isAuth) {
+      const error = new Error('Not Authenticated!');
+      error.code = 401;
+      throw error;
+    }
+
+    const post = await Post.findById(id).populate('creator');
+
+    if(!post){
+      throw new Error('No Post Found!')
+    }
+
+    return {...post._doc, _id: post._id.toString(), createdAt: post.createdAt.toISOString(), updatedAt: post.updatedAt.toISOString()};
   }
 };
