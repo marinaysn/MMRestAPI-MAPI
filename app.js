@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const connectionString = require('./util/database');
 const path = require('path');
 const fs = require('fs');
+const { clearImage } = require('./util/clearImage');
 const app = express();
 const multer = require('multer');
 const graphqlHTTP = require('express-graphql');
@@ -71,13 +72,6 @@ app.put('/post-image', (req, res, next) =>{
    return res.status(201).json({message: 'File stored', 
    filePath: req.file.path.replace('\\', '/') });
 });
-
-const clearImage = filePath => {
-  filePath = path.join(__dirname, '..', filePath);
-  fs.unlink(filePath, err => console.log(err));
-}
-
-
 
 
 app.use(
