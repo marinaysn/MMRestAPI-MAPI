@@ -3,6 +3,7 @@ const Post = require('../models/post');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const jwt = require('jsonwebtoken')
+const { clearImage } = require('../util/clearImage');
 
 const ITEMS_PER_PAGE = 5;
 
@@ -210,13 +211,48 @@ module.exports = {
       post.imageUrl = postInput.imageUrl;
     }
     
-    
+  
     const updatedPost = await post.save();
 
     return {
       ...updatedPost._doc, _id: updatedPost._id.toString(),
       updatedAt: updatedPost.updatedAt.toISOString(), createdAt: updatedPost.updatedAt.toISOString()
     };
+  },
 
+  deletePost: async function({id}, req){
+        //check if user if authorized
+        if (!req.isAuth) {
+          const error = new Error('Not Authenticated!');
+          error.code = 401;
+          throw error;
+        }
+
+  const post = await Post.findById(id);
+  //console.log(post)
+
+    if (!post) {
+      const error = new Error('Cannot find post to delete');
+      error.code = 401;
+      throw error;
+    }
+
+    if(post.creator.toString() !== req.userId.toString()){
+      const error = new Error('Cannot delete this post');
+      error.code = 403;
+      throw error;
+    }
+
+    clearImage(post.imageUrl);
+
+    await Post.findByIdAndRemove(id);
+
+    const user = await User.findById(req.userId);
+
+    user.posts.pull(id);
+    await user.save();
+    
+    return true
+    
   }
 };
