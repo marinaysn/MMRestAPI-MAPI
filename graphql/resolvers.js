@@ -119,7 +119,7 @@ module.exports = {
     };
   },
 
-  posts: async function ({page}, req) {
+  posts: async function ({ page }, req) {
 
     //check if user if authorized
     if (!req.isAuth) {
@@ -145,7 +145,7 @@ module.exports = {
     }
   },
 
-  singlePost: async function({id}, req) {
+  singlePost: async function ({ id }, req) {
 
     if (!req.isAuth) {
       const error = new Error('Not Authenticated!');
@@ -155,21 +155,21 @@ module.exports = {
 
     const post = await Post.findById(id).populate('creator');
 
-    if(!post){
+    if (!post) {
       throw new Error('No Post Found!')
     }
 
-    return {...post._doc, _id: post._id.toString(), createdAt: post.createdAt.toISOString(), updatedAt: post.updatedAt.toISOString()};
+    return { ...post._doc, _id: post._id.toString(), createdAt: post.createdAt.toISOString(), updatedAt: post.updatedAt.toISOString() };
   },
 
-  updatePost: async function({id, postInput}, req){
+  updatePost: async function ({ id, postInput }, req) {
 
-      //check if user if authorized
-      if (!req.isAuth) {
-        const error = new Error('Not Authenticated!');
-        error.code = 401;
-        throw error;
-      }
+    //check if user if authorized
+    if (!req.isAuth) {
+      const error = new Error('Not Authenticated!');
+      error.code = 401;
+      throw error;
+    }
 
     const errors = [];
     if (validator.isEmpty(postInput.title) ||
@@ -197,7 +197,7 @@ module.exports = {
       throw error;
     }
 
-    if(post.creator._id.toString() !== req.userId.toString()){
+    if (post.creator._id.toString() !== req.userId.toString()) {
       const error = new Error('Cannot edit this post');
       error.code = 403;
       throw error;
@@ -207,11 +207,11 @@ module.exports = {
     post.title = postInput.title;
     post.content = postInput.content;
 
-    if(postInput.imageUrl !== 'undefined'){
+    if (postInput.imageUrl !== 'undefined') {
       post.imageUrl = postInput.imageUrl;
     }
-    
-  
+
+
     const updatedPost = await post.save();
 
     return {
@@ -220,16 +220,16 @@ module.exports = {
     };
   },
 
-  deletePost: async function({id}, req){
-        //check if user if authorized
-        if (!req.isAuth) {
-          const error = new Error('Not Authenticated!');
-          error.code = 401;
-          throw error;
-        }
+  deletePost: async function ({ id }, req) {
+    //check if user if authorized
+    if (!req.isAuth) {
+      const error = new Error('Not Authenticated!');
+      error.code = 401;
+      throw error;
+    }
 
-  const post = await Post.findById(id);
-  //console.log(post)
+    const post = await Post.findById(id);
+    //console.log(post)
 
     if (!post) {
       const error = new Error('Cannot find post to delete');
@@ -237,7 +237,7 @@ module.exports = {
       throw error;
     }
 
-    if(post.creator.toString() !== req.userId.toString()){
+    if (post.creator.toString() !== req.userId.toString()) {
       const error = new Error('Cannot delete this post');
       error.code = 403;
       throw error;
@@ -251,8 +251,47 @@ module.exports = {
 
     user.posts.pull(id);
     await user.save();
-    
+
     return true
-    
+
+  }
+  ,
+  user: async function (args, req) {
+
+    //check if user if authorized
+    if (!req.isAuth) {
+      const error = new Error('Not Authenticated!');
+      error.code = 401;
+      throw error;
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      const error = new Error('No user found!');
+      error.code = 401;
+      throw error;
+    }
+    return { ...user._doc, _id: user._id.toString() };
+  },
+
+  updateStatus: async function ({ status }, req) {
+    //check if user if authorized
+    if (!req.isAuth) {
+      const error = new Error('Not Authenticated!');
+      error.code = 401;
+      throw error;
+    }
+    const user = await User.findById(req.userId);
+    if (!user) {
+      const error = new Error('No user found!');
+      error.code = 401;
+      throw error;
+    }
+
+    user.status = status;
+    await user.save();
+
+    return { ...user._doc, _id: user._id.toString() };
+
   }
 };
